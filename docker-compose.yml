@@ -16,6 +16,7 @@ services:
       --log-frmt "%(levelname)s | %(asctime)s | %(name)s | %(message)s"
       -a "download, update"
       -P "/data/.htpasswd"
+    user: "${CURRENT_USER_ID}:${CURRENT_GROUP_ID}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${PYPI_SERVER_PORT}/simple/" ]
       interval: 30s
