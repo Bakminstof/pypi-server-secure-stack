@@ -16,6 +16,12 @@ services:
       --log-frmt "%(levelname)s | %(asctime)s | %(name)s | %(message)s"
       -a "download, update"
       -P "/data/.htpasswd"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${PYPI_SERVER_PORT}/simple/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   nginx:
     image: nginx:${NGINX_VERSION}
@@ -36,4 +42,5 @@ services:
       /bin/bash -c "envsubst '$${NGINX_SERVER_PORT} $${NGINX_SERVER_NAME} $${PRIVATE_KEY_NAME} $${PUBLIC_KEY_NAME} $${APP_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - "${NGINX_CONTAINER_PORT}:${NGINX_SERVER_PORT}"
-
+    depends_on:
+      - pypiserver
