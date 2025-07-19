@@ -18,6 +18,6 @@ git restore *
 git reset --hard
 git pull origin "$GIT_BRANCH"
 
-docker compose up
+docker compose up -d
 
 popd
