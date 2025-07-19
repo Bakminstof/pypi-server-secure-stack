@@ -1,0 +1,39 @@
+name: pypi-server
+
+services:
+  pypiserver:
+    image: pypiserver/pypiserver:${PYPI_SERVER_VERSION}
+    container_name: my-pypi
+    restart: always
+    volumes:
+      - "./pypi/packages:/data/packages"
+      - "./pypi/.htpasswd:/data/.htpasswd:ro"
+      - "./logs/pypi:/logs"
+    command: >
+      run
+      -p ${PYPI_SERVER_PORT}
+      --log-file "/logs/pypi-server.log"
+      --log-frmt "%(levelname)s | %(asctime)s | %(name)s | %(message)s"
+      -a "download, update"
+      -P "/data/.htpasswd"
+
+  nginx:
+    image: nginx:${NGINX_VERSION}
+    container_name: pypi-nginx
+    restart: always
+    volumes:
+      - "./certs:/etc/nginx/certs"
+      - "./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template"
+      - "./logs/nginx:/var/log/nginx"
+    environment:
+      - APP_PORT=$PYPI_SERVER_PORT
+      - NGINX_CONTAINER_PORT=$NGINX_CONTAINER_PORT
+      - NGINX_SERVER_PORT=$NGINX_SERVER_PORT
+      - NGINX_SERVER_NAME=$NGINX_SERVER_NAME
+      - PRIVATE_KEY_NAME=$PRIVATE_KEY_NAME
+      - PUBLIC_KEY_NAME=$PUBLIC_KEY_NAME
+    command: > 
+      /bin/bash -c "envsubst '$${NGINX_SERVER_PORT} $${NGINX_SERVER_NAME} $${PRIVATE_KEY_NAME} $${PUBLIC_KEY_NAME} $${APP_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    ports:
+      - "${NGINX_CONTAINER_PORT}:${NGINX_SERVER_PORT}"
+
